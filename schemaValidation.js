@@ -1,6 +1,6 @@
 const joi = require("joi");
 
-const schemaValidation = joi.object({
+module.exports.schemaValidation = joi.object({
     listing: joi.object({
         firstName:joi.string().required(),
         lastName:joi.string().required(),
@@ -10,5 +10,3 @@ const schemaValidation = joi.object({
     })
 
 })
-
-module.exports = schemaValidation;

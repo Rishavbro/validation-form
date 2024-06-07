@@ -16,8 +16,10 @@ app.use(express.static(path.join(__dirname,"/public")));
 
 const validation = (req,res,next)=>{
     let {error} = schemaValidation.validate(req.body);
+    // let errMsg = error.details.map((el)=> el.message).join(",");
    if(error){
-    throw new ExpressError(400,error.details);
+    let errMsg = error.details.map((el)=> el.message).join(",");
+    throw new ExpressError(400,errMsg);
    }else{
     next()
    }
