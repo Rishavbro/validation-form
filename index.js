@@ -1,11 +1,28 @@
 const express = require("express");
 const mongoose = require("mongoose");
+
 const user = require("./modals/user.js")
 const app = express();
-const path = require("path")
+const path = require("path");
+const ExpressError = require("./ExpressError.js");
+const AsyncError = require("./AsyncWrapper.js");
+const {schemaValidation} = require("./schemaValidation.js");
 
 app.set("view engine","ejs");
 app.set("views",path.join(__dirname,"views"));
+app.use(express.urlencoded({extended:true}));
+
+app.use(express.static(path.join(__dirname,"/public")));
+
+const validation = (req,res,next)=>{
+    let {error} = schemaValidation.validate(req.body);
+   if(error){
+    throw new ExpressError(400,error.details);
+   }else{
+    next()
+   }
+}
+
 main().then(()=>{
     console.log("connection successfull")
 }).catch(err => console.log(err));
@@ -38,11 +55,20 @@ app.get("/signup",(req,res)=>{
     res.render("signup")
 })
 
-app.post("/signup",async (req,res)=>{
-console.log(req.body);
-res.send("hi")
-    
+app.post("/signup",validation, AsyncError(async(req,res)=>{
+    let newUser = new user(req.body.listing);
+    await newUser.save();
+    res.redirect("/")
+        
+    }))
+
+app.all("*",(req,res,next)=>{
+    next(new ExpressError(404,"page not found")) ;
 })
 
+app.use((err,req,res,next)=>{
+    let{status = 500,message = "internal server error"} = err;
+    res.status(status).send(message);
+})
 
-app.listen(3000)
+app.listen(3000);
